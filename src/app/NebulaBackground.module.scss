@@ -13,7 +13,7 @@
     inset: 0;
     align-items: center;
     justify-content: center;
-    transition: transform .3s;
+    transition: 1s;
 
     transform: rotate3d(0, 1, 0, calc(var(--rotation, 0) * 180deg));
     &:last-child {
@@ -33,12 +33,16 @@
 
 .thing {
   position: absolute;
-  width: 30px;
-  height: 30px;
+  min-height: 5%;
+  min-width: 5%;
+  aspect-ratio: 1;
+  --offset-x: 0;
+  --offset-y: 0;
+  --movement: 50px;
   border-radius: 50%;
-  background: hsl(calc(var(--hue) * 60) 50% 50% / 0.1);
-  transition: .3s;
+  background: hsl(calc(var(--hue) * 60) 50% 50% / 0.2);
+  transition: 1s;
   top: calc(var(--y) * 100%);
   left: calc(var(--x) * 100%);
-  transform: scale(calc((var(--scale, 1) * 10 + 1)))
+  scale: (calc((var(--scale, 1) * 10 + 1)));
 }

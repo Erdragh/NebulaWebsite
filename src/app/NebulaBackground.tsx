@@ -2,7 +2,7 @@
 
 import styles from "./NebulaBackground.module.scss"
 import {usePathname} from "next/navigation";
-import {CSSProperties, useMemo} from "react";
+import {CSSProperties, useEffect, useMemo, useRef} from "react";
 
 function cyrb128(str: string): [number, number, number, number] {
     let h1 = 1779033703, h2 = 3144134277,
@@ -24,7 +24,7 @@ function cyrb128(str: string): [number, number, number, number] {
 function sfc32(a: number, b: number, c: number, d: number) {
     return function() {
         a |= 0; b |= 0; c |= 0; d |= 0;
-        let t = (a + b | 0) + d | 0;
+        const t = (a + b | 0) + d | 0;
         d = d + 1 | 0;
         a = b ^ b >>> 9;
         b = c + (c << 3) | 0;
@@ -34,26 +34,55 @@ function sfc32(a: number, b: number, c: number, d: number) {
     }
 }
 
-export function NebulaBackground({nebulaComplexity = 15}: Readonly<{nebulaComplexity?: number}>) {
+const movementAnimationDuration = 30 * 1000;
+
+export function NebulaBackground({nebulaComplexity = 5}: Readonly<{nebulaComplexity?: number}>) {
     const path = usePathname();
 
     const seed = useMemo(() => cyrb128(path + nebulaComplexity), [path, nebulaComplexity]);
     const rand = useMemo(() => sfc32(...seed), [seed]);
 
-    const randoms = [...useMemo(() => new Array(nebulaComplexity * 2 * 4 + 1).fill(0).map(_ => rand()), [nebulaComplexity, rand])]
-
+    const randoms = [...useMemo(() => new Array(nebulaComplexity * 2 * 5 + 1).fill(0).map(() => rand()), [nebulaComplexity, rand])]
 
     const rotation = randoms.pop()!;
 
-    const secondHalf = randoms.reduce<number[][]>((acc, cur) => acc.at(-1)?.length === 4 ? [...acc, [cur]] : [...acc.slice(0, acc.length - 1), [...(acc.at(-1) ?? []), cur]], [])
+    const secondHalf = randoms.reduce<number[][]>((acc, cur) => acc.at(-1)?.length === 5 ? [...acc, [cur]] : [...acc.slice(0, acc.length - 1), [...(acc.at(-1) ?? []), cur]], [])
     const firstHalf = secondHalf.splice(secondHalf.length / 2);
+
+    const firstRefs = useRef<HTMLDivElement>(null);
+    const secondRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        let running = true;
+
+        const updateTiming = (time: DOMHighResTimeStamp) => {
+            const all = [...firstHalf, ...secondHalf];
+            const allElements = [...firstRefs.current!.children, ...secondRef.current!.children] as HTMLDivElement[];
+            for (const [[x, y, timingOffset], element] of all.reduce<[[x: number, y: number, offset: number], HTMLDivElement][]>((acc, cur, i) => [...acc, [[cur[0], cur[1], cur[4]], allElements[i]] as [[number, number, number], HTMLDivElement]], [])) {
+                // from 0 to 1
+                const progress = ((time - timingOffset * movementAnimationDuration + movementAnimationDuration) % movementAnimationDuration) / movementAnimationDuration;
+
+                const xProgress = (progress < 0.25 ? progress : (progress < 0.5 ? 0.5 - progress : (progress < 0.75 ? progress - 0.5 : 1 - progress))) * 4;
+
+                element.style.setProperty("--x", "" + ((1 - xProgress) * x + xProgress * (1 - x)));
+                element.style.setProperty("--y", "" + ((1 - progress) * y + progress * (1 - y)));
+            }
+
+            if (running) requestAnimationFrame(updateTiming)
+        }
+        updateTiming(0);
+
+        return () => {
+            running = false
+        };
+    })
 
     return <>
         <div className={styles.background} style={{"--rotation": rotation} as CSSProperties}>
-            <div className={styles.backgroundTransformRoot}>
+            <div ref={firstRefs} className={styles.backgroundTransformRoot}>
                 {firstHalf.map(([x, y, color, scale], i) => <div key={i} className={styles.thing} style={{"--x": x, "--y": y, "--hue": color, "--scale": scale} as CSSProperties}></div>)}
             </div>
-            <div className={styles.backgroundTransformRoot}>
+            <div ref={secondRef} className={styles.backgroundTransformRoot}>
                 {secondHalf.map(([x, y, color, scale], i) => <div key={i} className={styles.thing} style={{"--x": x, "--y": y, "--hue": color, "--scale": scale} as CSSProperties}></div>)}
             </div>
         </div>
