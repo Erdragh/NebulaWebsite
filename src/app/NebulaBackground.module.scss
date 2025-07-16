@@ -1,0 +1,44 @@
+.background {
+  position: absolute;
+  pointer-events: none;
+  inset: 0;
+  background-color: var(--nebula-dark);
+  z-index: -2;
+  perspective: 1000px;
+  overflow: hidden;
+
+  .backgroundTransformRoot {
+    display: flex;
+    position: absolute;
+    inset: 0;
+    align-items: center;
+    justify-content: center;
+    transition: transform .3s;
+
+    transform: rotate3d(0, 1, 0, calc(var(--rotation, 0) * 180deg));
+    &:last-child {
+      transform: rotate3d(0, 1, 0, calc(var(--rotation, 0) * 180deg + 90deg))
+    }
+  }
+}
+
+.filter {
+  display: block;
+  backdrop-filter: blur(100px);
+  position: absolute;
+  pointer-events: none;
+  inset: 0;
+  z-index: -1;
+}
+
+.thing {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: hsl(calc(var(--hue) * 60) 50% 50% / 0.1);
+  transition: .3s;
+  top: calc(var(--y) * 100%);
+  left: calc(var(--x) * 100%);
+  transform: scale(calc((var(--scale, 1) * 10 + 1)))
+}
