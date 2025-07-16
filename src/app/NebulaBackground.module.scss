@@ -40,8 +40,9 @@
   --offset-y: 0;
   --movement: 50px;
   border-radius: 50%;
-  background: hsl(calc(var(--hue) * 60) 50% 50% / 0.2);
-  transition: 1s;
+  // bit of boolean logic using round() to skip over green in the color spectrum
+  background: hsl(calc(round(var(--hue), 1) * var(--hue) * 60 + round(var(--hue), 1) * (var(--hue) * 260 + 100)) 50% 50% / 0.1);
+  transition: .5s;
   top: calc(var(--y) * 100%);
   left: calc(var(--x) * 100%);
   scale: (calc((var(--scale, 1) * 10 + 1)));

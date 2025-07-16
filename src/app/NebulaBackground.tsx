@@ -34,7 +34,7 @@ function sfc32(a: number, b: number, c: number, d: number) {
     }
 }
 
-const movementAnimationDuration = 30 * 1000;
+const movementAnimationDuration = 60 * 1000;
 
 export function NebulaBackground({nebulaComplexity = 5}: Readonly<{nebulaComplexity?: number}>) {
     const path = usePathname();
